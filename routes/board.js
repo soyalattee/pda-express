@@ -9,25 +9,21 @@ router.get("/", (req, res) => {
   });
 });
 
-function trackBoard(sess, boardTitle) {
-  if (!sess.boardPath) {
-    sess.boardPath = [boardTitle];
+function trackBoard(sess, boardId) {
+  if (sess.boardPath) {
+    sess.boardPath.push(boardId);
+    if (sess.boardPath.length > 10) {
+      sess.boardPath.shift();
+    }
+  } else {
+    sess.boardPath = [boardId];
   }
-  sess.boardPath.push(boardTitle);
+  console.log(sess.boardPath);
 }
 
 router.get("/:boardId", (req, res) => {
-  console.log(req.params.boardId);
   Board.findById(req.params.boardId).then((result) => {
-    if (req.session.boardPath) {
-      req.session.boardPath.push(req.params.boardId);
-      if (req.session.boardPath.length > 10) {
-        req.session.boardPath.shift();
-      }
-    } else {
-      req.session.boardPath = [req.params.boardId];
-    }
-    console.log(req.session);
+    trackBoard(req.session, req.params.boardId);
     res.json(result);
   });
 });

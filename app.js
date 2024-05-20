@@ -16,7 +16,6 @@ dotenv.config();
 
 mongoose
   .connect(process.env.MONGO_URI, {
-    useUnifiedTopology: true,
     useNewUrlParser: true,
   })
   .then(() => {
@@ -48,6 +47,23 @@ app.use(
 );
 
 app.use(express.static(path.join(__dirname, "public")));
+
+function trackPage(sess, url) {
+  if (sess.urlHistory) {
+    sess.urlHistory.push(url);
+    if (sess.urlHistory.length > 10) {
+      sess.urlHistory.shift();
+    }
+  } else {
+    sess.urlHistory = [url];
+  }
+  console.log(sess.urlHistory);
+}
+
+app.use(function (req, res, next) {
+  trackPage(req.session, req.url);
+  next();
+});
 
 //board로 요청하면 일로 감
 app.use("/board", boardRouter);
