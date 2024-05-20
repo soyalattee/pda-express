@@ -4,125 +4,117 @@ const Board = require("../models/Board");
 const Comment = require("../models/Comment");
 
 router.get("/", (req, res) => {
-  // Comment.create({
-  //   content: "댓글1 다섯글자",
-  //   author: "작성자1",
-  //   tags: ["Science", "love", "돼지고기", "고기"],
-  // })
-  //   .then((result) => {
-  //     res.json(result);
-  //   })
-  //   .catch((err) => {
-  //     console.error(err);
-  //     res.json(err);
-  //   });
-  // const board = new Board({
-  //   title: "제목1",
-  //   content: "내용1",
-  //   author: "작성자1",
-  // });
-  // board.save().then((result) => {
-  //   console.log(result);
-  //   res.json(result);
-  // });
-  //저장하겠다! promise리턴함
-  // res.send("My first board");
-  // Board.insertMany([
-  //   {
-  //     title: "제목3-1",
-  //     content: "내용3",
-  //     author: "작성자1",
-  //     num: 1,
-  //   },
-  //   {
-  //     title: "제목4-1",
-  //     content: "내용4",
-  //     author: "작성자4",
-  //     num: 3,
-  //   },
-  //   {
-  //     title: "제목5-1",
-  //     content: "내용5",
-  //     author: "작성자5",
-  //     num: 5,
-  //   },
-  //   {
-  //     title: "제목6-1",
-  //     content: "내용6",
-  //     author: "작성자1",
-  //     num: 2,
-  //   },
-  // ])
-  //   .then((data) => {
-  //     res.json(data);
-  //   })
-  //   .catch((err) => console.log(err));
-  //전부찾아서 보여주기
-  // Board.find().then((data) => {
-  //   res.json(data);
-  // });
-  // num 2 보다 큰(greater than) ,데이터 조회 크거나 같은(gte) , 작은(lt), 작거나 같은(lte)
-  // Board.find({
-  //   num: {
-  //     $gte: 2,
-  //   },
-  // }).then((result) => res.json(result));
-  //
-  // Board.find({
-  //   num: {
-  //     $lt: 5,
-  //   },
-  // }).then((result) => res.json(result));
-  //하나만 찾기
-  // Board.findOne().then((data) => {
-  //   res.json(data);
-  // });
-  //하나만 찾기
-  // Board.find({ author: "작성자1" }).then((data) => {
-  //   res.json(data);
-  // });
-  //하나만 id로찾기
-  // Board.findById("6646a172ec6ecd2c0a2551fb").then((data) => {
-  //   res.json(data);
-  // });
-  //하나 삭제
-  // Board.deleteOne({ title: "제목4" }).then((result) => {
-  //   res.json(result);
-  // });
-  //여러개 삭제
-  // Board.deleteMany({ author: "작성자1" }).then((result) => {
-  //   res.json(result);
-  // });
-  // Board.updateOne({ title: "제목3" }, { content: "내용2 수정" }).then(
-  //   (result) => {
-  //     res.json(result);
-  //   }
-  // );
-  // Board.insertMany([
-  //   { title: "제목8", content: "내용5", author: "작성자3" },
-  // ]).then((result) => res.json(result));
+  Board.find().then((result) => {
+    res.json(result);
+  });
+});
 
-  // Board.findOne().then((board) => {
-  //   Comment.create({
-  //     conetent: "new coment",
-  //     author: "sys",
-  //     board: board,
-  //   }).then((result) => {
-  //     res.json(result);
-  //   });
-  // });
-  //populate 보드가 있는애들은 보드도 나와라
-  // Comment.find()
-  //   .populate("board")
-  //   .then((result) => {
-  //     res.json(result);
-  //   });
-  Board.find()
-    .populate("comments")
-    .exec()
-    .then((result) => {
-      res.json(result);
+function trackBoard(sess, boardTitle) {
+  if (!sess.boardPath) {
+    sess.boardPath = [boardTitle];
+  }
+  sess.boardPath.push(boardTitle);
+}
+
+router.get("/:boardId", (req, res) => {
+  console.log(req.params.boardId);
+  Board.findById(req.params.boardId).then((result) => {
+    if (req.session.boardPath) {
+      req.session.boardPath.push(req.params.boardId);
+      if (req.session.boardPath.length > 10) {
+        req.session.boardPath.shift();
+      }
+    } else {
+      req.session.boardPath = [req.params.boardId];
+    }
+    console.log(req.session);
+    res.json(result);
+  });
+});
+
+router.post("/", (req, res) => {
+  const { title, content, author } = req.body;
+  Board.create({
+    title: title,
+    content: content,
+    author,
+    author,
+  }).then((result) => {
+    res.status(201).json(result);
+  });
+});
+
+router.put("/:boardId", (req, res) => {
+  const { title } = req.body;
+
+  Board.findByIdAndUpdate(
+    req.params.boardId,
+    { title },
+    { new: true, runValidators: true } // new: true는 업데이트된 문서를 반환하도록 설정, runValidators: true는 모델 스키마의 유효성 검사를 실행
+  )
+    .then((updatedBoard) => {
+      if (!updatedBoard) {
+        return res.status(404).send("게시글을 찾을 수 없습니다.");
+      }
+      res.json(updatedBoard);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("서버 오류");
     });
+});
+
+router.delete("/:boardId", (req, res) => {
+  Board.findByIdAndDelete(req.params.boardId)
+    .then((result) => {
+      if (!result) {
+        return res.status(404).send("게시글을 찾을 수 없습니다.");
+      }
+      res.json(result);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("서버 오류");
+    });
+});
+
+router.post("/:boardId/comments", (req, res) => {
+  const boardId = req.params.boardId;
+  const { content, author } = req.body;
+  Comment.create({
+    content: content,
+    author: author,
+    board: boardId,
+  }).then((result) => {
+    res.json(result);
+  });
+});
+
+router.put("/:boardId/comments/:commentId", (req, res) => {
+  const { boardId, commentId } = req.params;
+  const { content, author } = req.body;
+  Comment.findOneAndUpdate(
+    {
+      board: boardId,
+      _id: commentId,
+    },
+    {
+      content: content,
+      author: author,
+    }
+  ).then((result) => {
+    res.json(result);
+  });
+});
+
+router.put("/:boardId/comments/:commentId", (req, res) => {
+  const { boardId, commentId } = req.params;
+  Comment.findOneAndDelete({
+    board: boardId,
+    _id: commentId,
+  }).then((result) => {
+    res.status(204).send();
+  });
 });
 
 module.exports = router;

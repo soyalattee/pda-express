@@ -6,9 +6,12 @@ var logger = require("morgan");
 
 const boardRouter = require("./routes/board");
 const birdsRouter = require("./routes/birds");
-
+const cors = require("cors");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
+const session = require("express-session");
+
+//.env 읽고 환경설정
 dotenv.config();
 
 mongoose
@@ -22,15 +25,28 @@ mongoose
   .catch((err) => console.log(err));
 
 var app = express();
-
+app.use(cors({ origin: "http://localhost:3001" })); // 안쓰면 전체허용
 // view engine setup : 삭제. 우린 화면은 리액트에서 보여줄 거니까
 // app.set('views', path.join(__dirname, 'views'));
 // app.set('view engine', 'ejs');
 
 app.use(logger("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(express.json()); // json parse를 미들웨어로 해준것.
+app.use(express.urlencoded({ extended: false })); //url 인코딩 미들웨어
+app.use(cookieParser()); //쿠키 파싱
+app.use(
+  //세션 미들웨어
+  session({
+    secret: process.env.SESSION_SECRET || "<my-secret>",
+    resave: true,
+    saveUninitialized: true,
+    cookie: {
+      httpOnly: true,
+      secure: false,
+    },
+  })
+);
+
 app.use(express.static(path.join(__dirname, "public")));
 
 //board로 요청하면 일로 감
