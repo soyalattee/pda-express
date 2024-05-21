@@ -6,6 +6,7 @@ var logger = require("morgan");
 
 const boardRouter = require("./routes/board");
 const birdsRouter = require("./routes/birds");
+const userRouter = require("./routes/users");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
@@ -68,6 +69,7 @@ app.use(function (req, res, next) {
 //board로 요청하면 일로 감
 app.use("/board", boardRouter);
 app.use("/birds", birdsRouter);
+app.use("/user", userRouter);
 
 app.get("/", function (req, res) {
   res.send("hello world");
