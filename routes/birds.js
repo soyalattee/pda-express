@@ -1,6 +1,12 @@
 const express = require("express");
 const router = express.Router();
 
+const { loginRequired } = require("../utils/auth");
+
+router.get("/protected", loginRequired, (req, res) => {
+  res.send("protected Resource!");
+});
+
 router.get("/", (req, res) => {
   // res.setEncoding("My first board");
   console.log("현재 쿠키:", req.cookies);
