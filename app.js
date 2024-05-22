@@ -4,9 +4,8 @@ var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 
-const boardRouter = require("./routes/board");
+const apiRouter = require("./routes/api");
 const birdsRouter = require("./routes/birds");
-const userRouter = require("./routes/users");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
@@ -25,7 +24,7 @@ mongoose
   .catch((err) => console.log(err));
 
 var app = express();
-app.use(cors({ origin: "http://localhost:3001", credentials: true })); // 안쓰면 전체허용
+app.use(cors({ origin: "http://localhost:5173", credentials: true })); // 안쓰면 전체허용
 // view engine setup : 삭제. 우린 화면은 리액트에서 보여줄 거니까
 // app.set('views', path.join(__dirname, 'views'));
 // app.set('view engine', 'ejs');
@@ -69,10 +68,8 @@ app.use(function (req, res, next) {
   next();
 });
 
-//board로 요청하면 일로 감
-app.use("/board", boardRouter);
+app.use("/api", apiRouter); // 하위에 보드,유저 존재
 app.use("/birds", birdsRouter);
-app.use("/user", userRouter);
 
 app.get("/", function (req, res) {
   res.send("hello world");

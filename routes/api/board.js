@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const Board = require("../models/Board");
-const Comment = require("../models/Comment");
-const { loginRequired } = require("../utils/auth");
+const Board = require("../../models/Board");
+const Comment = require("../../models/Comment");
+const { loginRequired } = require("../../utils/auth");
 router.get("/", (req, res) => {
   Board.find().then((result) => {
     res.json(result);
