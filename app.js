@@ -25,7 +25,7 @@ mongoose
   .catch((err) => console.log(err));
 
 var app = express();
-app.use(cors({ origin: "http://localhost:3001" })); // 안쓰면 전체허용
+app.use(cors({ origin: "http://localhost:3001", credentials: true })); // 안쓰면 전체허용
 // view engine setup : 삭제. 우린 화면은 리액트에서 보여줄 거니까
 // app.set('views', path.join(__dirname, 'views'));
 // app.set('view engine', 'ejs');
@@ -48,6 +48,9 @@ app.use(
 );
 
 app.use(express.static(path.join(__dirname, "public")));
+
+const { authenticate } = require("./utils/auth");
+app.use(authenticate);
 
 function trackPage(sess, url) {
   if (sess.urlHistory) {

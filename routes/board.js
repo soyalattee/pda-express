@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Board = require("../models/Board");
 const Comment = require("../models/Comment");
-
+const { loginRequired } = require("../utils/auth");
 router.get("/", (req, res) => {
   Board.find().then((result) => {
     res.json(result);
@@ -28,13 +28,13 @@ router.get("/:boardId", (req, res) => {
   });
 });
 
-router.post("/", (req, res) => {
-  const { title, content, author } = req.body;
+router.post("/", loginRequired, (req, res) => {
+  const { title, content } = req.body;
+  console.log("user info :", req.user);
   Board.create({
     title: title,
     content: content,
-    author,
-    author,
+    author: req.user.email,
   }).then((result) => {
     res.status(201).json(result);
   });

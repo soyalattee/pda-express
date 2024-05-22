@@ -28,6 +28,8 @@ router.post("/login", async (req, res, next) => {
     res.cookie("authToken", token, {
       httpOnly: true,
       maxAge: tokenMaxAge * 1000,
+      secure: false,
+      sameSite: false, //너 왜 'none'도 될거처럼 문서 써놓고 false만 돼????
     });
     console.log(user);
     res.status(201).json(user);
